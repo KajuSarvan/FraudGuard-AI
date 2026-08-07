@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Mail, Lock, User, Eye, EyeOff, Shield, Sparkles } from 'lucide-react';
+import { Mail, Lock, User, Eye, EyeOff, Shield } from 'lucide-react';
 
 export default function AuthForm({ onAuthSuccess }) {
   const [mode, setMode] = useState('login');
@@ -11,12 +11,6 @@ export default function AuthForm({ onAuthSuccess }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const apiUrl = mode === 'login' ? '/api/auth/login' : '/api/auth/register';
-
-  const handleFillDemo = (demoEmail, demoPassword) => {
-    setEmail(demoEmail);
-    setPassword(demoPassword);
-    setError('');
-  };
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -96,33 +90,6 @@ export default function AuthForm({ onAuthSuccess }) {
           </p>
         </div>
 
-        {/* Quick Demo Credentials Autofill Banner */}
-        {mode === 'login' && (
-          <div className="mb-6 rounded-2xl border border-cyan-500/20 bg-cyan-500/5 p-3 text-xs text-slate-300">
-            <div className="flex items-center justify-between font-semibold text-cyan-300 mb-2">
-              <span className="flex items-center gap-1.5">
-                <Sparkles className="h-3.5 w-3.5 text-cyan-400" />
-                Quick Demo Access:
-              </span>
-            </div>
-            <div className="flex gap-2">
-              <button
-                type="button"
-                onClick={() => handleFillDemo('demo@fraudguard.ai', 'demo1234')}
-                className="flex-1 rounded-xl border border-cyan-500/30 bg-cyan-500/10 py-1.5 px-2 font-medium text-cyan-300 transition hover:bg-cyan-500/20 text-center"
-              >
-                Demo Admin 1
-              </button>
-              <button
-                type="button"
-                onClick={() => handleFillDemo('demo2@fraudguard.ai', 'demo1234')}
-                className="flex-1 rounded-xl border border-slate-700 bg-slate-800/60 py-1.5 px-2 font-medium text-slate-300 transition hover:bg-slate-800 text-center"
-              >
-                Demo Auditor 2
-              </button>
-            </div>
-          </div>
-        )}
 
         {error && (
           <div className="mb-5 rounded-2xl border border-rose-500/40 bg-rose-500/10 px-4 py-3 text-sm font-medium text-rose-200">
