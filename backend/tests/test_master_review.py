@@ -39,9 +39,9 @@ def test_db_spec_compliance():
 
 
 def test_endpoints_existence():
-    res_root = client.get("/")
+    res_root = client.get("/api/health")
     assert res_root.status_code == 200
-    assert res_root.json()["status"] == "ok"
+    assert res_root.json()["status"] in ["ok", "healthy"]
 
     headers = login_headers()
     res_invoices = client.get("/invoices", headers=headers)

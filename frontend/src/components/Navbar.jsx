@@ -1,7 +1,7 @@
 import React from 'react';
 import { ShieldCheck, Cpu, RefreshCw, Layers, Sun, Moon } from 'lucide-react';
 
-export default function Navbar({ backendConnected, onResetDB, userEmail, onLogout, theme, setTheme }) {
+export default function Navbar({ backendConnected, onResetDB, onOpenDBEvidence, userEmail, onLogout, theme, setTheme }) {
   return (
     <header className="sticky top-0 z-50 glass-panel border-b border-slate-800/80 px-6 py-4">
       <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-4">
@@ -40,6 +40,16 @@ export default function Navbar({ backendConnected, onResetDB, userEmail, onLogou
           )}
 
           <div className="flex items-center gap-2">
+            {onOpenDBEvidence && (
+              <button
+                onClick={onOpenDBEvidence}
+                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-cyan-300 hover:text-white bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-500/30 rounded-lg transition-all"
+                title="View live persistent database activity and evidence"
+              >
+                <Layers className="w-3.5 h-3.5 text-cyan-400" />
+                <span>DB Evidence</span>
+              </button>
+            )}
             <button
               onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
               className="flex items-center justify-center p-2 rounded-lg bg-slate-800/60 hover:bg-slate-800 border border-slate-700/60 hover:border-slate-650 text-slate-300 hover:text-white transition-all"
@@ -71,3 +81,4 @@ export default function Navbar({ backendConnected, onResetDB, userEmail, onLogou
     </header>
   );
 }
+

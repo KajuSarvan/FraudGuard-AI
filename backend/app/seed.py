@@ -3,10 +3,13 @@ from .database import engine, Base, SessionLocal, ensure_db_schema
 from .models import Vendor, Invoice, User, PurchaseOrder, GoodsReceipt
 
 
-def seed_database():
+def seed_database(db: Session = None):
     ensure_db_schema()
     Base.metadata.create_all(bind=engine)
-    db = SessionLocal()
+    should_close = False
+    if db is None:
+        db = SessionLocal()
+        should_close = True
     try:
         db.query(Invoice).delete()
         db.query(PurchaseOrder).delete()
@@ -367,7 +370,9 @@ def seed_database():
         print(f"Error seeding database: {e}")
         raise e
     finally:
-        db.close()
+        if should_close:
+            db.close()
+
 
 
 if __name__ == "__main__":

@@ -11,6 +11,7 @@ import InvoiceHistory from './components/InvoiceHistory';
 import InvoiceUploadModal from './components/InvoiceUploadModal';
 import FraudGraph from './components/FraudGraph';
 import InvestigatorPanel from './components/InvestigatorPanel';
+import DatabaseEvidenceModal from './components/DatabaseEvidenceModal';
 import { Plus, Play, Network, Shield, Search } from 'lucide-react';
 
 export default function App() {
@@ -24,7 +25,9 @@ export default function App() {
   const [activeAgent, setActiveAgent] = useState(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [isUploadOpen, setIsUploadOpen] = useState(false);
+  const [isDBEvidenceOpen, setIsDBEvidenceOpen] = useState(false);
   const [metrics, setMetrics] = useState(null);
+
   const [activeTab, setActiveTab] = useState('simulator');
   const [theme, setTheme] = useState(() => {
     const saved = localStorage.getItem('fraudguard_theme');
@@ -341,12 +344,20 @@ export default function App() {
 
   const handleResetDemo = async () => {
     try {
-      await fetch('/api/demo/reset', {
+      const res = await fetch('/api/demo/reset', {
         method: 'POST',
         headers: authHeaders,
       });
-      fetchInvoices();
-      fetchMetrics();
+      if (!res.ok) {
+        const errData = await res.json();
+        alert(errData.detail || 'Reset failed.');
+        return;
+      }
+      setSelectedInvoice(null);
+      setTraces([]);
+      setActiveAgent(null);
+      await fetchInvoices();
+      await fetchMetrics();
     } catch (e) {
       console.error('Reset failed:', e);
     }
@@ -357,15 +368,17 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-dark-900 text-slate-100">
+    <div className="min-h-screen flex flex-col bg-dark-900 text-slate-100 font-sans">
       <Navbar
         backendConnected={backendConnected}
         onResetDB={handleResetDemo}
+        onOpenDBEvidence={() => setIsDBEvidenceOpen(true)}
         userEmail={userEmail}
         onLogout={handleLogout}
         theme={theme}
         setTheme={setTheme}
       />
+
 
       <main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 space-y-6">
         
@@ -580,6 +593,13 @@ export default function App() {
         onSubmitCustom={handleCustomUpload}
         onSubmitDocument={handleDocumentUpload}
       />
+
+      <DatabaseEvidenceModal
+        isOpen={isDBEvidenceOpen}
+        onClose={() => setIsDBEvidenceOpen(false)}
+        authToken={authToken}
+      />
     </div>
   );
 }
+

@@ -3,7 +3,7 @@ import io
 import json
 import asyncio
 import hashlib
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional, List, Dict, Any
 from fastapi import FastAPI, Depends, HTTPException, Body, Request, status, File, UploadFile, Form
 from fastapi.middleware.cors import CORSMiddleware
@@ -187,16 +187,22 @@ def create_preset_invoice(req: PresetRequest, db: Session = Depends(get_db), cur
     data = presets[preset_type]
     extra = data.get("extra_data", {})
     inv_num = data["invoice_number"]
+    raw_reasoning = data.get("reasoning", "Preset demo invoice created.")
 
     # For non-duplicate presets in invoice_fraud, ensure a unique invoice number so clean preset doesn't collide with historical ledger items
     if "duplicate" not in preset_type and wf_type != "customer_order":
         existing_dup = db.query(Invoice).filter(Invoice.invoice_number == inv_num).first()
         if existing_dup:
-            suffix = int(datetime.utcnow().timestamp()) % 10000
-            inv_num = f"{data['invoice_number']}-{suffix}"
+            suffix = int(datetime.now(timezone.utc).timestamp()) % 10000
+            new_inv_num = f"{data['invoice_number']}-{suffix}"
+            raw_reasoning = raw_reasoning.replace(inv_num, new_inv_num)
+            inv_num = new_inv_num
     else:
         # Ensure at least one prior invoice exists in ledger for duplicate preset testing
-        existing_count = db.query(Invoice).filter(Invoice.invoice_number == inv_num).count()
+        existing_count = db.query(Invoice).filter(
+            Invoice.owner_id == current_user.id,
+            Invoice.invoice_number == inv_num
+        ).count()
         if existing_count == 0:
             prior = Invoice(
                 owner_id=current_user.id,
@@ -219,13 +225,14 @@ def create_preset_invoice(req: PresetRequest, db: Session = Depends(get_db), cur
         amount=data["amount"],
         invoice_date=data["invoice_date"],
         status="PENDING",
-        reasoning=data.get("reasoning", "Preset demo invoice created."),
+        reasoning=raw_reasoning,
         extra_data_json=json.dumps(extra) if extra else None,
     )
     db.add(invoice)
     db.commit()
     db.refresh(invoice)
     return invoice
+
 
 
 @app.post("/invoices/create")
@@ -1162,9 +1169,74 @@ def reset_demo(db: Session = Depends(get_db), current_user: User = Depends(get_c
         
     from app.seed import seed_database
     from seed_payment_ledger import seed_ledger
-    seed_database()
-    seed_ledger()
+    seed_database(db=db)
+    seed_ledger(db=db)
     return {"message": "Demo state reset successfully."}
+
+
+@app.get("/api/system/database-activity")
+def get_database_activity(db: Session = Depends(get_db), current_user: User = Depends(get_current_active_user)):
+    db_url = os.getenv("DATABASE_URL")
+    if db_url and db_url.startswith("sqlite"):
+        effective_db = db_url.replace("sqlite:///", "")
+        storage_type = "Persistent Disk (Render Volume)" if "/var/data" in db_url else "Persistent Local SQLite File"
+    else:
+        effective_db = "fraudguard.db"
+        storage_type = "Persistent Local SQLite File"
+
+    total_invoices = db.query(Invoice).filter(Invoice.owner_id == current_user.id).count()
+    total_vendors = db.query(Vendor).count()
+    total_pos = db.query(PurchaseOrder).filter(PurchaseOrder.owner_id == current_user.id).count()
+    total_grns = db.query(GoodsReceipt).filter(GoodsReceipt.owner_id == current_user.id).count()
+    total_ledger = db.query(PaymentLedger).count()
+    fraud_detections = db.query(Invoice).filter(
+        Invoice.owner_id == current_user.id,
+        (Invoice.risk_score >= 50.0) | (Invoice.status.in_(["REJECTED", "REJECT", "HOLD", "ESCALATED", "ESCALATE"]))
+    ).count()
+
+    recent_invoices = db.query(Invoice).filter(Invoice.owner_id == current_user.id).order_by(Invoice.id.desc()).limit(10).all()
+    invoices_data = []
+    for inv in recent_invoices:
+        invoices_data.append({
+            "id": inv.id,
+            "invoice_number": inv.invoice_number,
+            "vendor_name": inv.vendor_name,
+            "amount": inv.amount,
+            "workflow_type": inv.workflow_type,
+            "status": inv.status,
+            "risk_score": inv.risk_score or 0.0,
+            "risk_signals": inv.risk_signals,
+            "submitted_at": inv.submitted_at.isoformat() if inv.submitted_at else None
+        })
+
+    recent_ledger = db.query(PaymentLedger).order_by(PaymentLedger.id.desc()).limit(5).all()
+    ledger_data = []
+    for leg in recent_ledger:
+        ledger_data.append({
+            "id": leg.id,
+            "transaction_reference": leg.transaction_reference,
+            "order_reference": leg.order_reference,
+            "amount": leg.amount,
+            "status": leg.status,
+            "beneficiary_name": leg.beneficiary_name,
+            "payment_date": leg.payment_date.isoformat() if leg.payment_date else None
+        })
+
+    return {
+        "storage_type": storage_type,
+        "effective_database_path": effective_db,
+        "counters": {
+            "total_invoices": total_invoices,
+            "total_vendors": total_vendors,
+            "total_purchase_orders": total_pos,
+            "total_goods_receipts": total_grns,
+            "total_payment_ledger_records": total_ledger,
+            "fraud_detections": fraud_detections
+        },
+        "recent_invoices": invoices_data,
+        "recent_ledger_records": ledger_data
+    }
+
 @app.get("/invoices", response_model=List[InvoiceResponse])
 @app.get("/api/invoices", response_model=List[InvoiceResponse])
 def list_invoices(

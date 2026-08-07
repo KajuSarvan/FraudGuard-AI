@@ -139,11 +139,11 @@ Output schema:
         return {
             "clean": {
                 "workflow_type": "invoice_fraud",
-                "invoice_number": "INV-APEX-1001",
+                "invoice_number": "INV-APEX-1002",
                 "vendor_name": "Apex Cloud Infrastructure Inc",
                 "amount": 1520.00,
                 "invoice_date": "2026-08-01",
-                "reasoning": "From: Apex Cloud Infrastructure Inc\nInvoice Number: INV-APEX-1001\nDate: 2026-08-01\nAmount: $1,520.00\nLine Items:\n- Kubernetes Cluster Dedicated Nodes: $1,100.00\n- Bandwidth Egress & Network Load Balancer: $420.00\nTax ID: US-EIN-98421049",
+                "reasoning": "From: Apex Cloud Infrastructure Inc\nInvoice Number: INV-APEX-1002\nDate: 2026-08-01\nAmount: $1,520.00\nLine Items:\n- Kubernetes Cluster Dedicated Nodes: $1,100.00\n- Bandwidth Egress & Network Load Balancer: $420.00\nTax ID: US-EIN-98421049",
                 "extra_data": {
                     "bank_account_number": "123459271",
                     "routing_number": "998877665",

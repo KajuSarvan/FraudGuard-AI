@@ -72,3 +72,11 @@ def ensure_db_schema():
             conn.execute(text("ALTER TABLE goods_receipts ADD COLUMN line_items_json TEXT;"))
             conn.commit()
 
+        # Check vendors table
+        v_result = conn.execute(text("PRAGMA table_info(vendors);"))
+        v_columns = [row[1] for row in v_result.fetchall()]
+        if "created_at" not in v_columns:
+            conn.execute(text("ALTER TABLE vendors ADD COLUMN created_at DATETIME;"))
+            conn.commit()
+
+

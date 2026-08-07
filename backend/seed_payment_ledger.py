@@ -7,11 +7,14 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 from app.database import SessionLocal, engine, Base
 from app.models import PaymentLedger
 
-def seed_ledger():
+def seed_ledger(db=None):
     print("Creating tables if they don't exist...")
     Base.metadata.create_all(bind=engine)
     
-    db = SessionLocal()
+    should_close = False
+    if db is None:
+        db = SessionLocal()
+        should_close = True
     
     # Wipe existing
     db.query(PaymentLedger).delete()
@@ -58,8 +61,10 @@ def seed_ledger():
     
     db.add_all(payments)
     db.commit()
-    db.close()
+    if should_close:
+        db.close()
     print("Successfully seeded Payment Ledger.")
+
 
 if __name__ == "__main__":
     seed_ledger()

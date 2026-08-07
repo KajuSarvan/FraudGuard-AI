@@ -232,11 +232,12 @@ def get_cached_preset(invoice_text: str) -> Optional[Dict[str, Any]]:
     """
     text_lower = (invoice_text or "").lower()
     
-    if "inv-dup-9901" in text_lower or "duplicate" in text_lower:
+    if "inv-dup-9901" in text_lower or "duplicate" in text_lower or "re-issued" in text_lower:
         return DEMO_PRESET_CACHES["duplicate"]
     if "vortex" in text_lower or "65,000" in text_lower or "65000" in text_lower:
         return DEMO_PRESET_CACHES["suspicious"]
-    if "inv-apex-1001" in text_lower or "preset_clean" in text_lower:
+    if "inv-apex-1001" in text_lower or "inv-apex-1002" in text_lower or "preset_clean" in text_lower or "kubernetes" in text_lower or "clean" in text_lower:
         return DEMO_PRESET_CACHES["clean"]
         
     return DEMO_PRESET_CACHES["suspicious"]
+
