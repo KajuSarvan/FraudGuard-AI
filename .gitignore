@@ -2,16 +2,20 @@
 __pycache__/
 *.py[cod]
 *$py.class
-venv/
-.venv/
+venv
+backend/venv
+.venv
+*.db
 fraudguard.db
 
 # Environment variables
 .env
 .env.local
+backend/.env
 
 # Node
-node_modules/
-dist/
-build/
+node_modules
+frontend/node_modules
+dist
+build
 .DS_Store
