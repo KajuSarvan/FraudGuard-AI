@@ -360,7 +360,7 @@ def delete_invoice(invoice_id: int, db: Session = Depends(get_db), current_user:
     return {"message": f"Invoice {invoice_id} deleted."}
 
 
-@app.get("/")
+@app.get("/api/info")
 def read_root():
     return {
         "status": "ok",
