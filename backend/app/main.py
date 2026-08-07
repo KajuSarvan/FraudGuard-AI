@@ -1583,20 +1583,48 @@ def override_invoice_decision(invoice_id: int, req: OverrideRequest, db: Session
 
 
 @app.get("/health")
-def health_check_root():
-    return health_check()
+@app.get("/api/health", response_model=HealthResponse)
+def health_check():
+    return {"status": "ok", "message": "FraudGuard AI Autonomous Multi-Agent API is active."}
 
 
-# SPA serving
+# SPA static file serving
 current_dir = os.path.dirname(os.path.abspath(__file__))
 frontend_dist_path = os.path.abspath(os.path.join(current_dir, "..", "..", "frontend", "dist"))
+assets_path = os.path.join(frontend_dist_path, "assets")
 
-if os.path.exists(frontend_dist_path):
-    app.mount("/assets", StaticFiles(directory=os.path.join(frontend_dist_path, "assets")), name="assets")
+if os.path.exists(assets_path):
+    app.mount("/assets", StaticFiles(directory=assets_path), name="assets")
 
-    @app.get("/{rest_of_path:path}")
-    async def serve_frontend(rest_of_path: str):
-        # Exclude API endpoints and documentation from catch-all
-        if rest_of_path.startswith("api") or rest_of_path.startswith("health") or rest_of_path.startswith("docs") or rest_of_path.startswith("openapi.json"):
-            raise HTTPException(status_code=404, detail="Not Found")
-        return FileResponse(os.path.join(frontend_dist_path, "index.html"))
+
+@app.get("/{rest_of_path:path}")
+async def serve_frontend(rest_of_path: str):
+    # Exclude API endpoints and documentation from SPA catch-all
+    if (
+        rest_of_path == "api"
+        or rest_of_path.startswith("api/")
+        or rest_of_path == "health"
+        or rest_of_path.startswith("health/")
+        or rest_of_path == "docs"
+        or rest_of_path.startswith("docs/")
+        or rest_of_path == "openapi.json"
+        or rest_of_path.startswith("redoc")
+    ):
+        raise HTTPException(status_code=404, detail="Not Found")
+
+    target_file = os.path.join(frontend_dist_path, rest_of_path)
+    if rest_of_path and os.path.isfile(target_file):
+        return FileResponse(target_file)
+
+    index_file = os.path.join(frontend_dist_path, "index.html")
+    if os.path.exists(index_file):
+        return FileResponse(index_file)
+
+    return JSONResponse({
+        "status": "ok",
+        "service": "FraudGuard AI Backend",
+        "message": "FraudGuard AI Autonomous Multi-Agent API is active.",
+        "warning": "Frontend static build (frontend/dist/index.html) was not found on this server.",
+        "solution": "Update your Render Web Service 'Build Command' to: pip install -r backend/requirements.txt && cd frontend && npm install && npm run build"
+    })
+
