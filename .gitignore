@@ -16,6 +16,6 @@ backend/.env
 # Node
 node_modules
 frontend/node_modules
-dist
-build
+# dist
 .DS_Store
+
