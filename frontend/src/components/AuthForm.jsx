@@ -107,7 +107,7 @@ export default function AuthForm({ onAuthSuccess }) {
                   type="text"
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
-                  placeholder="John Doe"
+                  placeholder=""
                   className="auth-input w-full rounded-2xl border border-slate-700 pl-10 pr-4 py-3.5 text-sm font-semibold outline-none transition focus:border-cyan-400 focus:ring-1 focus:ring-cyan-500"
                   style={{ backgroundColor: '#030712', color: '#ffffff', caretColor: '#00f2fe' }}
                 />
@@ -123,7 +123,7 @@ export default function AuthForm({ onAuthSuccess }) {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="demo@fraudguard.ai"
+                placeholder=""
                 required
                 className="auth-input w-full rounded-2xl border border-slate-700 pl-10 pr-4 py-3.5 text-sm font-semibold outline-none transition focus:border-cyan-400 focus:ring-1 focus:ring-cyan-500"
                 style={{ backgroundColor: '#030712', color: '#ffffff', caretColor: '#00f2fe' }}
@@ -139,7 +139,7 @@ export default function AuthForm({ onAuthSuccess }) {
                 type={showPassword ? "text" : "password"}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
+                placeholder=""
                 required
                 className="auth-input w-full rounded-2xl border border-slate-700 pl-10 pr-11 py-3.5 text-sm font-semibold outline-none transition focus:border-cyan-400 focus:ring-1 focus:ring-cyan-500"
                 style={{ backgroundColor: '#030712', color: '#ffffff', caretColor: '#00f2fe' }}
